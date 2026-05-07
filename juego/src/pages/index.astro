@@ -11,24 +11,43 @@ import Layout from '../layouts/Layout.astro';
   <script>
   import { crearMarco, crearUnCirculo } from "@cuerpos/cuerpos";
   import { MotorFisico } from "@motor/motor";
+  import Matter from "matter-js"
 
 	const lienzos = document.querySelectorAll<HTMLCanvasElement>(`canvas[piko-park-canvas]`);
 	lienzos.forEach((lienzo) => {
 		const marco = crearMarco(lienzo);
     const limitesLienzo = lienzo.getBoundingClientRect()
-    const circulo = crearUnCirculo({
-      x: limitesLienzo.width /2,
-      y: limitesLienzo.height/2,
-      radio: 10,
-      colorDeRelleno: "#000"
-
-    })
-		const engine = new MotorFisico({
+		const motor = new MotorFisico({
 			lienzo,
-      cuerpos: [...marco, circulo],
+      cuerpos: marco,
 		});
 
-		engine.comenzar();
+		motor.comenzar();
+
+    const jugadores = new Map<string, Matter.Body>()
+
+    const ws = new WebSocket('ws://localhost:3000/ws')
+    ws.onmessage = (mensaje) => {
+      console.log(mensaje.data)
+      const [id, accion] = mensaje.data.split(',') 
+      if (accion === 'nuevo') {
+        const circulo = crearUnCirculo({
+          x: limitesLienzo.width /2,
+          y: limitesLienzo.height/2,
+          radio: 10,
+          colorDeRelleno: "#000"
+        })
+        jugadores.set(id, circulo)
+        motor.agregarCuerpo(circulo)
+      }
+      if (accion === 'saltar') {
+        const circulo = jugadores.get(id)
+        if(circulo) {
+          Matter.Body.applyForce(circulo, {x:circulo?.position.x, y:circulo?.position.y}, {x:0, y:-0.02})
+        }
+      }
+
+    }
 	});
   </script>
 </Layout>

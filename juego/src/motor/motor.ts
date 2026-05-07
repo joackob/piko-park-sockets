@@ -90,4 +90,9 @@ export class MotorFisico {
     Matter.Events.on(this.props.motor, "afterUpdate", callback);
     return this;
   }
+
+  agregarCuerpo(cuerpo: Matter.Body): MotorFisico {
+    Matter.World.add(this.props.motor.world, cuerpo);
+    return this;
+  }
 }

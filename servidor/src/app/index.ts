@@ -10,11 +10,13 @@ app.onStart(({ server }) => {
 
 app.ws("/ws", {
   open(ws) {
+    console.log(`Nuevo cliente ${ws.id}`);
     ws.subscribe("piko-park");
+    ws.publish("piko-park", `${ws.id},nuevo`);
   },
   message(ws, mensaje) {
     console.log(`Mensaje recibido de ${ws.id}: ${mensaje}`);
-    ws.publish("piko-park", mensaje);
+    ws.publish("piko-park", `${ws.id},${mensaje}`);
   },
 });
 
