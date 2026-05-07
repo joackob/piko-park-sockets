@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "piko-park-juego",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -12,6 +12,10 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.3.0"
+    "astro": "^6.3.0",
+    "matter-js": "^0.20.0"
+  },
+  "devDependencies": {
+    "@types/matter-js": "^0.20.2"
   }
 }

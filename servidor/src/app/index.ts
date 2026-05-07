@@ -9,9 +9,12 @@ app.onStart(({ server }) => {
 });
 
 app.ws("/ws", {
+  open(ws) {
+    ws.subscribe("piko-park");
+  },
   message(ws, mensaje) {
-    ws.send(mensaje);
     console.log(`Mensaje recibido de ${ws.id}: ${mensaje}`);
+    ws.publish("piko-park", mensaje);
   },
 });
 
