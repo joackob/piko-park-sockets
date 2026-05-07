@@ -25,7 +25,34 @@ const IMAGE_STYLE: ImageStyle = {
 };
 
 export default function Screen() {
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
+  const ws = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    setColorScheme('dark');
+
+    ws.current = new WebSocket('ws://10.0.2.2:3000/ws');
+    ws.current.onopen = () => {
+      setColorScheme('light');
+    };
+
+    ws.current.onclose = () => {
+      setColorScheme('dark');
+    };
+
+    ws.current.onerror = () => {
+      setColorScheme('dark');
+    };
+
+    return () => {
+      setColorScheme('dark');
+      ws.current?.close();
+    };
+  }, []);
+
+  const solicitarAlServidor = () => {
+    ws.current?.send('saltar');
+  };
 
   return (
     <>
@@ -33,7 +60,7 @@ export default function Screen() {
       <View className="flex-1 items-center justify-center gap-8 p-4">
         <Image source={LOGO[colorScheme ?? 'light']} style={IMAGE_STYLE} resizeMode="contain" />
         <View className="flex-row gap-2">
-          <Button>
+          <Button onPress={solicitarAlServidor}>
             <Text>Saltar</Text>
           </Button>
         </View>
