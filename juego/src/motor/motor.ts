@@ -1,4 +1,5 @@
 import Matter from "matter-js";
+import { crearMarco, crearUnCirculo } from "@cuerpos/cuerpos";
 
 interface PropiedadesDelMotorFisico {
   lienzo: HTMLCanvasElement;
@@ -6,11 +7,12 @@ interface PropiedadesDelMotorFisico {
   render: Matter.Render;
   motor: Matter.Engine;
   ejecutor: Matter.Runner;
+  personajes: Map<string, Matter.Body>;
 }
 
 interface ParametrosDelConstructorDelMotorFisico {
   lienzo: HTMLCanvasElement;
-  cuerpos: Matter.Body[];
+  cuerpos?: Matter.Body[];
   motor?: Matter.Engine;
   ejecutor?: Matter.Runner;
 }
@@ -20,7 +22,7 @@ export class MotorFisico {
 
   constructor({
     lienzo,
-    cuerpos,
+    cuerpos = [],
     motor = Matter.Engine.create(),
     ejecutor = Matter.Runner.create(),
   }: ParametrosDelConstructorDelMotorFisico) {
@@ -36,9 +38,11 @@ export class MotorFisico {
       },
     });
     Matter.World.add(motor.world, cuerpos);
+    const marco = crearMarco(lienzo);
     this.props = {
+      cuerpos: [...marco, ...cuerpos],
+      personajes: new Map<string, Matter.Body>(),
       lienzo,
-      cuerpos,
       motor,
       ejecutor,
       render,
@@ -93,6 +97,30 @@ export class MotorFisico {
 
   agregarCuerpo(cuerpo: Matter.Body): MotorFisico {
     Matter.World.add(this.props.motor.world, cuerpo);
+    return this;
+  }
+
+  agregarPersonaje({ id }: { id: string }): MotorFisico {
+    const limitesLienzo = this.props.lienzo.getBoundingClientRect();
+    const circulo = crearUnCirculo({
+      x: limitesLienzo.width / 2,
+      y: limitesLienzo.height / 2,
+      radio: 10,
+      colorDeRelleno: "#000",
+    });
+    this.props.personajes.set(id, circulo);
+    this.agregarCuerpo(circulo);
+    return this;
+  }
+
+  aplicarSaltoAUnPersonaje({ id }: { id: string }): MotorFisico {
+    if (this.props.personajes.has(id)) {
+      const personaje = this.props.personajes.get(id);
+      Matter.Body.applyForce(personaje!, personaje?.position!, {
+        x: 0,
+        y: -0.001,
+      });
+    }
     return this;
   }
 }

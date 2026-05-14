@@ -1,58 +1,38 @@
 ---
-import Layout from "../layouts/Layout.astro";
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from "@layouts/Layout.astro";
 ---
 
 <Layout>
   <h1>Piko park</h1>
   <canvas piko-park-canvas></canvas>
   <script>
-    import { crearMarco, crearUnCirculo } from "@cuerpos/cuerpos";
     import { MotorFisico } from "@motor/motor";
-    import Matter from "matter-js";
+    import { ConexionWS } from "@conexion/conexion_ws";
 
     const lienzos = document.querySelectorAll<HTMLCanvasElement>(
       `canvas[piko-park-canvas]`,
     );
     lienzos.forEach((lienzo) => {
-      const marco = crearMarco(lienzo);
-      const limitesLienzo = lienzo.getBoundingClientRect();
       const motor = new MotorFisico({
         lienzo,
-        cuerpos: marco,
       });
 
       motor.comenzar();
 
-      const jugadores = new Map<string, Matter.Body>();
+      const conexion = new ConexionWS({
+        ws: new WebSocket("ws://localhost:3000/ws"),
+      });
 
-      const ws = new WebSocket("ws://localhost:3000/ws");
-      ws.onmessage = (mensaje) => {
-        console.log(mensaje.data);
-        const [id, accion] = mensaje.data.split(",");
-        if (accion === "nuevo") {
-          const circulo = crearUnCirculo({
-            x: limitesLienzo.width / 2,
-            y: limitesLienzo.height / 2,
-            radio: 10,
-            colorDeRelleno: "#000",
-          });
-          jugadores.set(id, circulo);
-          motor.agregarCuerpo(circulo);
-        }
-        if (accion === "saltar") {
-          const circulo = jugadores.get(id);
-          if (circulo) {
-            Matter.Body.applyForce(
-              circulo,
-              { x: circulo?.position.x, y: circulo?.position.y },
-              { x: 0, y: -0.02 },
-            );
-          }
-        }
-      };
+      conexion
+        .alConectarseAlServidor(() => {
+          console.log("Conectado...");
+        })
+        .alConectarseUnJugador(({ id }) => {
+          motor.agregarPersonaje({ id });
+        })
+        .alRecibirUnaSolicitudDeSalto(({ id }) => {
+          motor.aplicarSaltoAUnPersonaje({ id });
+        });
     });
   </script>
 </Layout>

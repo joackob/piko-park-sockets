@@ -14,7 +14,8 @@
       "@styles/*": ["src/styles/*"],
       "@motor/*": ["src/motor/*"],
       "@cuerpos/*": ["src/cuerpos/*"],
-      "@colores/*": ["src/colores/*"]
+      "@colores/*": ["src/colores/*"],
+      "@conexion/*": ["src/conexion/*"]
     }
   }
 }
